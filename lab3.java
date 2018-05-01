@@ -12,27 +12,33 @@ public class ShapeFactory
   public ShapeFactory(int shape_type) {
     stroke = new java.awt.BasicStroke(3.0F);
     switch (shape_type / 10) {
-    case 1: 
-      shape = createStar(3, new Point(0, 0), width / 2.0D, width / 2.0D);
-      break;
-    case 3: 
-      shape = createStar(5, new Point(0, 0), width / 2.0D, width / 4.0D);
-      break;
-    case 5: 
-      shape = new java.awt.geom.Rectangle2D.Double(-width / 2.0D, -height / 2.0D, width, height);
-      break;
-    case 7: 
-      GeneralPath path = new GeneralPath();
-      double tmp_height = Math.sqrt(2.0D) / 2.0D * height;
-      path.moveTo(-width / 2, -tmp_height);
-      path.lineTo(0.0D, -tmp_height);
-      path.lineTo(width / 2, tmp_height);
-      path.closePath();
-      shape = path;
-      break;
-    case 9: 
-      shape = new java.awt.geom.Arc2D.Double(-width / 2.0D, -height / 2.0D, width, height, 30.0D, 300.0D, 
-        2);
+        ///
+     protected void (Graphics gr)
+    {
+        super.paintComponent(gr);
+        Graphics2D g = (Graphics2D) gr;
+        g.setColor(Color.GRAY);
+        g.fillRect(0, 0, getWidth(), getHeight());
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g.setColor(Color.BLACK);
+        g.draw(createSimpleStar(50, 200, 200));
+
+        g.setPaint(Color.GREEN);
+        g.fill(drawStar(400, 400, 40, 60, 10, 0));
+
+        g.setPaint(new RadialGradientPaint(
+            new Point(400, 200), 60, new float[] { 0, 1 }, 
+            new Color[] { Color.RED, Color.YELLOW }));
+        g.fill(drawStar(400, 200, 20, 60, 8, 0));
+
+        g.setPaint(new RadialGradientPaint(
+            new Point(200, 400), 50, new float[] { 0, 0.3f, 1 }, 
+            new Color[] { Color.BLACK, Color.YELLOW, Color.ORANGE }));
+        g.fill(drawStar(200, 400, 40, 50, 20, 0));
+
+    }
+        ////
       break;
     case 2: case 4: case 6: 
     case 8: default: 
@@ -73,5 +79,19 @@ public class ShapeFactory
     }
     path.closePath();
     return path;
+    
   }
+  ///
+     public static void main(String[] args) throws IOException {
+       BufferedImage image = ImageIO.read(new File(""));
+       int x = 7;
+       int y = 7;
+       
+       boolean isAlfa = checkPix(image, x, y);
+       
+       if (isAlfa) System.out.println("Пиксель ");
+             
+    }   
+///
+
 }
