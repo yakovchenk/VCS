@@ -1,133 +1,200 @@
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Paint;
 import java.awt.Point;
+import java.awt.Shape;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D.Double;
 
-public class ShapeFactory
-{
-  public java.awt.Shape shape;
-  public java.awt.BasicStroke stroke;
-  public java.awt.Paint paint;
-  public int width = 25;
-  public int height = 25;
-  
-  public ShapeFactory(int shape_type) {
-    stroke = new java.awt.BasicStroke(3.0F);
-    switch (shape_type / 10) {
-    case 1: 
-      shape = createStar(3, new Point(0, 0), width / 2.0D, width / 2.0D);
-      break;
-    case 3: 
-      shape = createStar(5, new Point(0, 0), width / 2.0D, width / 4.0D);
-      break;
-    case 5: 
-      shape = new java.awt.geom.Rectangle2D.Double(-width / 2.0D, -height / 2.0D, width, height);
-      break;
-    case 7: 
-      GeneralPath path = new GeneralPath();
-      double tmp_height = Math.sqrt(2.0D) / 2.0D * height;
-      path.moveTo(-width / 2, -tmp_height);
-      path.lineTo(0.0D, -tmp_height);
-      path.lineTo(width / 2, tmp_height);
-      path.closePath();
-      shape = path;
-      break;
-    case 9: 
-      shape = new java.awt.geom.Arc2D.Double(-width / 2.0D, -height / 2.0D, width, height, 30.0D, 300.0D, 
-        2);
-      break;
-    case 2: case 4: case 6: 
-    case 8: default: 
-      throw new Error("type is nusupported");
-    }
-    private static void drawingAndDisplay()
-    {
-        JFrame f = new JFrame();
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.getContentPane().add(new StarPanel());
-        f.setSize(600, 600);
-        f.setLocationRelativeTo(null);
-        f.setVisible(true);
-    }
+public class ShapeFactory {
 
-}
+	public Shape shape;
+	public BasicStroke stroke = new BasicStroke(3.0F);
+	public Paint paint;
+	public int width = 25;
+	public int height = 25;
 
-class StarPanel extends JPanel
-{
-    @Override
-    protected void paintComponent(Graphics gr)
-    {
-        super.paintComponent(gr);
-        Graphics2D g = (Graphics2D) gr;
-        g.setColor(Color.GRAY);
-        g.fillRect(0, 0, getWidth(), getHeight());
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+	public static enum ShapeForm {
+		HEXAGON, // 1
+		FIVESTAR, // 3
+		SQUARE, // 5
+		TRIANGLE, // 7
+		PACMAN, // 9
+		
+		NULL
+	}
 
-        g.setColor(Color.BLACK);
-        g.draw(createSimpleStar(50, 200, 200));
+	public static enum StrokeType {
+		THIN, // 1
+		DEFAULT, // 3
+		THICK, // 4
+		
+		NULL
+	}
 
-        g.setPaint(Color.GREEN);
-        g.fill(drawStar(400, 400, 40, 60, 10, 0));
+	public static enum PaintType {
+		GRADIENT, // 7
+		RED, // 8
+		
+		NULL
+	}
+	public ShapeFactory (Shape shape)
+	{
+		this.shape = shape;
+	}
+	
+	public ShapeFactory (ShapeForm form)
+	{
+		initByShapeForm (form);
+	}
+	 public ShapeFactory(int shape_type) {
+		switch (shape_type / 10) {
+		case 1:
+			initByShapeForm (ShapeForm.HEXAGON);
+			break;
+		case 3:
+			initByShapeForm (ShapeForm.FIVESTAR);
+			break;
+		case 5:
+			initByShapeForm (ShapeForm.SQUARE);
+			break;
+		case 7:
+			initByShapeForm (ShapeForm.TRIANGLE);
+			break;
+		case 9:
+			initByShapeForm (ShapeForm.PACMAN);
+			break;
+		default:
+			initByShapeForm (null);
+			break;
+		}
 
-        g.setPaint(new RadialGradientPaint(
-            new Point(400, 200), 60, new float[] { 0, 1 }, 
-            new Color[] { Color.RED, Color.YELLOW }));
-        g.fill(drawStar(400, 200, 20, 60, 8, 0));
+		switch (shape_type % 10) {
+		case 1:
+			setStroke(StrokeType.THIN);
+			break;
+		case 3:
+			setStroke(StrokeType.DEFAULT);
+			break;
+		case 4:
+			setStroke(StrokeType.THICK);
+			break;
+		case 7:
+			setPaint(PaintType.GRADIENT);
+			break;
+		case 8:
+			setPaint(PaintType.RED);
+			break;
+		default:
+			setStroke(StrokeType.NULL);
+			setPaint(PaintType.NULL);
+			break;
+		}
+	}
 
-        g.setPaint(new RadialGradientPaint(
-            new Point(200, 400), 50, new float[] { 0, 0.3f, 1 }, 
-            new Color[] { Color.BLACK, Color.YELLOW, Color.ORANGE }));
-        g.fill(drawStar(200, 400, 40, 50, 20, 0));
+	private void initByShapeForm (ShapeForm form)
+	{
+		if (form == null) form = ShapeForm.NULL;
+		switch (form)
+		{
+		case HEXAGON:
+			this.shape = createStar(3, new Point(0, 0),
+					(double) this.width / 2.0D, (double) this.width / 2.0D);
+			break;
+		case FIVESTAR:
+			this.shape = createStar(5, new Point(0, 0),
+					(double) this.width / 2.0D, (double) this.width / 4.0D);
+			break;
+		case SQUARE:
+			this.shape = new Double((double) (-this.width) / 2.0D,
+					(double) (-this.height) / 2.0D, (double) this.width,
+					(double) this.height);
+			break;
+		case TRIANGLE:
+			GeneralPath path = new GeneralPath();
+			double tmp_height = Math.sqrt(2.0D) / 2.0D * (double) this.height;
+			path.moveTo((double) (-this.width / 2), -tmp_height);
+			path.lineTo(0.0D, -tmp_height);
+			path.lineTo((double) (this.width / 2), tmp_height);
+			path.closePath();
+			this.shape = path;
+			break;
+		case PACMAN:
+			this.shape = new java.awt.geom.Arc2D.Double(
+					(double) (-this.width) / 2.0D,
+					(double) (-this.height) / 2.0D, (double) this.width,
+					(double) this.height, 30.0D, 300.0D, 2);
+			break;
+		default:
+			throw new Error("type is nusupported");
+		}
+	}
+	
+	public void setStroke(BasicStroke stroke)
+	{
+		this.stroke = stroke;
+	}
+	
+	public void setStroke(StrokeType type)
+	{
+		if (type == null) type = StrokeType.NULL;
+		switch (type)
+		{
+			case DEFAULT:
+			case THIN:
+				this.stroke = new BasicStroke(3.0F);
+				break;
+			case THICK:
+				this.stroke = new BasicStroke(7.0F);
+				break;
+			default:
+				throw new Error("type is unsupported");
+		}
+	}
+	
+	public void setPaint(Paint paint)
+	{
+		this.paint = paint;
+	}
+	
+	public void setPaint(PaintType type)
+	{
+		if (type == null) type = PaintType.NULL;
+		switch (type)
+		{
+		case GRADIENT:
+			this.paint = new GradientPaint((float) (-this.width),
+					(float) (-this.height), Color.white, (float) this.width,
+					(float) this.height, Color.gray, true);
+			break;
+		case RED:
+			this.paint = Color.red;
+			break;
+		default:
+			throw new Error("type is unsupported");	
+		}
+			
+	}
 
-    }
+	private static Shape createStar(int arms, Point center, double rOuter,
+			double rInner) {
+		double angle = 3.141592653589793D / (double) arms;
+		GeneralPath path = new GeneralPath();
 
-    private static Shape createSimpleStar(double radius, double koordX, double koordY)
-    {
-        return drawStar(koordX, koordY, radius, radius * 2.63, 5,
-            Math.toRadians(-18));
-    }
+		for (int i = 0; i < 2 * arms; ++i) {
+			double r = (i & 1) == 0 ? rOuter : rInner;
+			java.awt.geom.Point2D.Double p = new java.awt.geom.Point2D.Double(
+					(double) center.x + Math.cos((double) i * angle) * r,
+					(double) center.y + Math.sin((double) i * angle) * r);
+			if (i == 0) {
+				path.moveTo(p.getX(), p.getY());
+			} else {
+				path.lineTo(p.getX(), p.getY());
+			}
+		}
 
-    private static Shape drawStar(double koordX, double koordY,
-        double innerRadius, double outerRadius, int numRays,
-        double startAngleR)
-    {
-        Path2D p = new Path2D.Double();
-        double deltaAngleR = Math.PI / numRays;
-        for (int i = 0; i < numRays * 2; i++)
-        {
-            double angleR = startAngleR + i * deltaAngleR;
-            double ca = Math.cos(angleR);
-            double sa = Math.sin(angleR);
-            double relX = ca;
-            double relY = sa;
-            if ((i & 1) == 0)
-            {
-                relX *= outerRadius;
-                relY *= outerRadius;
-            }
-            else
-            {
-                relX *= innerRadius;
-                relY *= innerRadius;
-            }
-            if (i == 0)
-            {
-                p.moveTo(koordX + relX, koordY + relY);
-            }
-            else
-            
-       int = 7;
-       int =7;
-       
-       boolean isAlfa = checkPix(image, x, y);
-       
-       if (isAlfa) System.out.println("")
-
-    {
-      double r = (i & 0x1) == 0 ? rOuter : rInner;
-      java.awt.geom.Point2D.Double p = new java.awt.geom.Point2D.Double(x + Math.cos(i * angle) * r, y + Math.sin(i * angle) * r);
-      if (i == 0) path.moveTo(p.getX(), p.getY()); else
-        path.lineTo(p.getX(), p.getY());
-    }
-    path.closePath();
-    return path;
-  }
+		path.closePath();
+		return path;
+	}
 }
