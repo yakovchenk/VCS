@@ -1,0 +1,227 @@
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Shape;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D.Double;
+
+public class ShapeFactory {
+
+	public Shape shape;
+	public BasicStroke stroke = new BasicStroke(3.0F);
+	public Paint paint;
+	public int width = 25;
+	public int height = 25;
+
+	public static enum ShapeForm {
+		HEXAGON, // 1
+		FIVESTAR, // 3
+		SQUARE, // 5
+		TRIANGLE, // 7
+		PACMAN, // 9
+		
+		NULL
+	}
+
+	public static enum StrokeType {
+		THIN, // 1
+		DEFAULT, // 3
+		THICK, // 4
+		
+		NULL
+	}
+
+	public static enum PaintType {
+		GRADIENT, // 7
+		RED, // 8
+		
+		NULL
+	}
+
+	/**
+	 * Конструктор, инициализирующий объект по готовому экземпляру shape
+	 * Поскольку для параметров stroke и paint позволительно значение null,
+	 * то они не указываются в конструкторе
+	 * @param shape
+	 */
+	public ShapeFactory (Shape shape)
+	{
+		this.shape = shape;
+	}
+	
+	/**
+	 * Конструктор, инициализирующий объект по одному из значений enum'a
+	 * @param ShapeForm одно из значений ShapeFactory.ShapeForm
+	 */
+	public ShapeFactory (ShapeForm form)
+	{
+		initByShapeForm (form);
+	}
+
+    /**@deprecated
+	 * Этот конструктор является устаревшим и сохранен для совместимости
+	 * Используйте ShapeFactory (ShapeForm form)
+	 * 
+	 * @param shape_type
+	 *            Двузначное число, определяющее тип фигуры: 1й разряд - форма
+	 *            фигуры 2й разряд - тип линии, образующей фигуру
+	 */
+	@Deprecated public ShapeFactory(int shape_type) {
+		switch (shape_type / 10) {
+		case 1:
+			initByShapeForm (ShapeForm.HEXAGON);
+			break;
+		case 3:
+			initByShapeForm (ShapeForm.FIVESTAR);
+			break;
+		case 5:
+			initByShapeForm (ShapeForm.SQUARE);
+			break;
+		case 7:
+			initByShapeForm (ShapeForm.TRIANGLE);
+			break;
+		case 9:
+			initByShapeForm (ShapeForm.PACMAN);
+			break;
+		default:
+			initByShapeForm (null);
+			break;
+		}
+
+		switch (shape_type % 10) {
+		case 1:
+			setStroke(StrokeType.THIN);
+			break;
+		case 3:
+			setStroke(StrokeType.DEFAULT);
+			break;
+		case 4:
+			setStroke(StrokeType.THICK);
+			break;
+		case 7:
+			setPaint(PaintType.GRADIENT);
+			break;
+		case 8:
+			setPaint(PaintType.RED);
+			break;
+		default:
+			setStroke(StrokeType.NULL);
+			setPaint(PaintType.NULL);
+			break;
+		}
+	}
+
+	private void initByShapeForm (ShapeForm form)
+	{
+		if (form == null) form = ShapeForm.NULL;
+		switch (form)
+		{
+		case HEXAGON:
+			this.shape = createStar(3, new Point(0, 0),
+					(double) this.width / 2.0D, (double) this.width / 2.0D);
+			break;
+		case FIVESTAR:
+			this.shape = createStar(5, new Point(0, 0),
+					(double) this.width / 2.0D, (double) this.width / 4.0D);
+			break;
+		case SQUARE:
+			this.shape = new Double((double) (-this.width) / 2.0D,
+					(double) (-this.height) / 2.0D, (double) this.width,
+					(double) this.height);
+			break;
+		case TRIANGLE:
+			GeneralPath path = new GeneralPath();
+			double tmp_height = Math.sqrt(2.0D) / 2.0D * (double) this.height;
+			path.moveTo((double) (-this.width / 2), -tmp_height);
+			path.lineTo(0.0D, -tmp_height);
+			path.lineTo((double) (this.width / 2), tmp_height);
+			path.closePath();
+			this.shape = path;
+			break;
+		case PACMAN:
+			this.shape = new java.awt.geom.Arc2D.Double(
+					(double) (-this.width) / 2.0D,
+					(double) (-this.height) / 2.0D, (double) this.width,
+					(double) this.height, 30.0D, 300.0D, 2);
+			break;
+		default:
+			throw new Error("type is nusupported");
+		}
+	}
+	
+	public void setStroke(BasicStroke stroke)
+	{
+		this.stroke = stroke;
+	}
+	
+	public void setStroke(StrokeType type)
+	{
+		if (type == null) type = StrokeType.NULL;
+		switch (type)
+		{
+			case DEFAULT:
+			case THIN:
+				this.stroke = new BasicStroke(3.0F);
+				break;
+			case THICK:
+				this.stroke = new BasicStroke(7.0F);
+				break;
+			default:
+				throw new Error("type is unsupported");
+		}
+	}
+	
+	public void setPaint(Paint paint)
+	{
+		this.paint = paint;
+	}
+	
+	public void setPaint(PaintType type)
+	{
+		if (type == null) type = PaintType.NULL;
+		switch (type)
+		{
+		case GRADIENT:
+			this.paint = new GradientPaint((float) (-this.width),
+					(float) (-this.height), Color.white, (float) this.width,
+					(float) this.height, Color.gray, true);
+			break;
+		case RED:
+			this.paint = Color.red;
+			break;
+		default:
+			throw new Error("type is unsupported");	
+		}
+			
+	}
+	/**
+	 * Функция создает на основе заданных параметров правильный n-угольник
+	 * 
+	 * @param arms
+	 *            Число двойных ребер
+	 * @param center
+	 *            Точка, в которой находится центр
+	 * @param rOuter
+	 *            Внешний радиус
+	 * @param rInner
+	 *            Внутренний радиус
+	 * @return
+	 */
+	private static Shape createStar(int arms, Point center, double rOuter,
+			double rInner) {
+		double angle = 3.141592653589793D / (double) arms;
+		GeneralPath path = new GeneralPath();
+
+		for (int i = 0; i < 2 * arms; ++i) {
+			double r = (i & 1) == 0 ? rOuter : rInner;
+			java.awt.geom.Point2D.Double p = new java.awt.geom.Point2D.Double(
+					(double) center.x + Math.cos((double) i * angle) * r,
+					(double) center.y + Math.sin((double) i * angle) * r);
+			if (i == 0) {
+				path.moveTo(p.getX(), p.getY());
+			} else {
+				path.lineTo(p.getX(), p.getY());
+			}
+		}
